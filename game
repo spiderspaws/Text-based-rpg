@@ -1,0 +1,95 @@
+import time
+
+def slow_print(text, delay=0.03):
+    for char in text:
+        print(char, end="", flush=True)
+        time.sleep(delay)
+    print()
+
+def showInstructions( ):
+    slow_print("====================================")
+    slow_print("There are a few commands you can use to interact with the game.")
+    slow_print("Commands are case sensitive, and must be typed exactly as shown.")
+    slow_print("Be wary.")
+    slow_print("====================================")
+    slow_print("Action: go [direction]")
+    slow_print("        get [item]")
+    
+def status():
+    print("--------------------")
+    slow_print(f"You are in the {currentRoom}.")
+    print("--------------------")
+    slow_print(f"{rooms[currentRoom]['description']}")
+    slow_print(f"Inventory: {inventory}")
+    print("--------------------") 
+    
+    if "items" in rooms[currentRoom]:
+        room_items = rooms[currentRoom]["items"]
+        if room_items:
+            print(f"You can see the following items: {', '.join(room_items)}. Take them?")
+              
+inventory = []
+
+rooms = {
+    "Bedroom": {
+        "description": "''The air stale, and cold. Slightly dusty. As the sun set, the room felt rather gloomy. The rumpled sheets on the bed have been slept in, countless times. But had never been made.. It felt empty despite the mess. Next to the closet door, was the desk. It had a fair amount of space, alot of drawers filled with even more design plans and notes. A couple sketches of a building, and a few notes on the desk. Upon searching through its drawers, there is a journal and a pen. The ink is almost finished. Underneath the desk, and uncomfortable looking wooden chair that had a scarf, a deep red, laying on top of it. The bathroom door runs along the left side of the room, and is closed. The window being the only source of light, and the only way to see outside. The glass cracked, and its curtains are old and slightly tattered.'",
+
+ 
+        "items": ["pen", "red scarf", "journal"],
+        "exits": {"north": "main room", "west": "Bathroom"}
+    },
+    "main room": {
+        "description": "You are in the main room.",
+        "items": ["coffee", "ciggarettes", "flies"],
+        "exits": {"south": "bedroom", "east": "Kitchen", "west": "Apartment Building Hallway"}
+    },
+    "bathroom": {
+        "description": "''There's not much to it, It's a small bathroom. The walls painted a light blue, and the floor is tiled. The sink is on the left side of the room, with a medicine cabinet with a mirror above it. Looking inside the cabinet, you find Venlafaxine. There are other medicine; ibuprofen, acetaminophin. There are basic first aid supplies as well. bandages, gauze, and hydrogen peroxide. The toilet is next to the sink, and the shower is on the right side of the room. The shower curtain is old and slightly tattered. The bathroom door is closed, and there's a faint scent of an antiseptic smell. The bathtub is north of the room, a small showerhead attatched to the wall. The bathroom is small, but it has everything you need.'",
+        "items": ["effexor", "bandages", "gauze",],
+        "exits": {"east": "bedroom"}
+    },
+    "kitchen": {
+        "description": "You are in the kitchen.",
+        "items": ["knife"],
+        "exits": {"west": "main room"}
+    },
+    "apartment building hallway": {
+        "description": "You are in the apartment building's hallway.",
+        "items": [],
+        "exits": {"east": "main room"}
+    }
+}
+
+currentRoom = "Bedroom"
+
+showInstructions()
+
+while True:
+    status()
+    move = input("What will you do? >")
+    move = move.split(" ", 1)
+
+    if move[0] == "get":
+        if move[1] in rooms[currentRoom]["items"]:
+            print(f"You picked up the {move[1]}.")
+            print (f"Items in inventory: {inventory}")
+            inventory.append(move[1])
+            rooms[currentRoom]["items"] = " "
+        else:
+            print(f"You already took the {move[1]}.")
+            
+    print(f"You are in the {currentRoom}.")
+    
+    move = input("What will you do? >")
+    move = move.split(" ", 1)
+    
+    if move[0] == "go":
+        if move[1] in rooms[currentRoom]["exits"]:
+            currentRoom = rooms[currentRoom]["exits"][move[1]]
+            print(f"You walk to the {currentRoom}.")
+        else: 
+            print("You can't go that way.")
+
+
+
+    
