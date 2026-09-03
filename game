@@ -1,6 +1,6 @@
 import time
 
-def slow_print(text, delay=0.03):
+def slow_print(text, delay=0.02):
     for char in text:
         print(char, end="", flush=True)
         time.sleep(delay)
@@ -20,6 +20,7 @@ def status():
     slow_print(f"You are in the {currentRoom}.")
     print("--------------------")
     print(f"{rooms[currentRoom]['description']}")
+    print("--------------------")
     slow_print(f"Inventory: {inventory}")
     print("--------------------") 
     
@@ -60,6 +61,21 @@ rooms = {
     }
 }
 
+outside = {
+    "description": "You are outside the apartment building.",
+    "items": [],
+    "exits": {"back": "apartment building entrance"}
+}
+outside["crestwood plaza"] = {
+    "description": "You are in Crestwood Plaza's lobby.",
+    "exits": {"back": "apartment building entrance"}
+}
+
+ysuets_room = {
+    "description": "You are in Ysuet's room.",
+    "items": [],
+    "exits": {"back": "Crestwood's hallway"}
+}
 currentRoom = "bedroom"
 
 showInstructions()
