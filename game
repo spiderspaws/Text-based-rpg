@@ -15,7 +15,7 @@ def showInstructions( ):
     print("====================================")
     slow_print("Action: go [direction]")
     slow_print("        get [item]")
-    slow_print("        attack, heal, run")
+    slow_print("        attack, use, throw, confuse, run")
     slow_print("        look, inventory, quit")
 
 def show_health():
@@ -24,6 +24,12 @@ def show_health():
     bar = "#" * filled + "-" * (health_width - filled)
     print(f"Health: [{bar}] {player_health}/{player_max_health}")
 
+def show_stress():
+    stress_width = 20
+    filled = int(player_stress / player_max_stress * stress_width)
+    bar = "#" * filled + "-" * (stress_width - filled)
+    print(f"Stress: [{bar}] {player_stress}/{player_max_stress}")
+
 def death_screen():
     print("\n====================================")
     print("              YOU DIED")
@@ -31,42 +37,86 @@ def death_screen():
     print("You Idiot...")
 
 def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
-    global player_health
+    global player_health, player_stress
 
     print(f"\nA {enemy_name} blocks your path!")
     while enemy_health > 0 and player_health > 0:
         print("------------------------------------")
         show_health()
+        show_stress()
         enemy_bar = "#" * int(enemy_health / enemy_max_health * 20)
         enemy_bar += "-" * (20 - len(enemy_bar))
         print(f"{enemy_name.title()}: [{enemy_bar}] {enemy_health}/{enemy_max_health}")
+        print("Choose an action:")
+        print("  attack - Deal damage to the enemy")
+        print("  use <item> - Use an item to recover health")
+        print("  throw <item> - Throw an item at the enemy")
+        print("  confuse <item> - Confuse the enemy and damage it")
+        print("  run    - Retreat from the fight")
         action = input("Fight> ").lower().strip()
 
         if action == "attack":
             damage = random.randint(12, 20) if "knife" in inventory else random.randint(4, 8)
             enemy_health = max(0, enemy_health - damage)
             print(f"You hit the {enemy_name} for {damage} damage.")
-        elif action == "heal":
-            if "bandages" not in inventory:
-                print("You do not have any bandages.")
+        elif action.startswith("use "):
+            item = action[4:].strip()
+            healing = {"bandages": 25, "gauze": 15, "effexor": 10}.get(item)
+            stress_reduction = {"effexor": 30}.get(item, 0)
+            if item not in inventory or healing is None:
+                print(f"You cannot use {item} to heal.")
                 continue
-            if player_health == player_max_health:
-                print("You are already at full health.")
+            if player_health == player_max_health and player_stress == 0:
+                print(f"The {item} would not help you right now.")
                 continue
-            player_health = min(player_max_health, player_health + 25)
-            inventory.remove("bandages")
-            print("You use the bandages and recover 25 health.")
+            health_recovery = min(healing, player_max_health - player_health)
+            player_health += health_recovery
+            old_stress = player_stress
+            player_stress = max(0, player_stress - stress_reduction)
+            inventory.remove(item)
+            if health_recovery:
+                print(f"You use the {item} and recover {health_recovery} health.")
+            if stress_reduction:
+                print(f"Your stress drops by {old_stress - player_stress}.")
+        elif action.startswith("throw "):
+            item = action[6:].strip()
+            if item not in inventory:
+                print(f"You do not have a {item} to throw.")
+                continue
+            damage = random.randint(12, 20) if item == "knife" else random.randint(4, 10)
+            inventory.remove(item)
+            enemy_health = max(0, enemy_health - damage)
+            print(f"You throw the {item} and hit the {enemy_name} for {damage} damage.")
+        elif action.startswith("confuse "):
+            item = action[8:].strip()
+            if item not in inventory:
+                print(f"You do not have a {item} to use for confusion.")
+                continue
+            if item not in ("ciggarettes", "coffee", "red scarf"):
+                print(f"The {item} would not confuse the {enemy_name}.")
+                continue
+            damage = random.randint(4, 8) if random.choice((True, False)) else random.randint(15, 25)
+            inventory.remove(item)
+            enemy_health = max(0, enemy_health - damage)
+            print(f"The {enemy_name} is confused. It loses {damage} health.")
         elif action == "run":
             print("You retreat to the main room.")
             return False
         else:
-            print("Choose attack, heal, or run.")
+            print("Choose attack, use <item>, throw <item>, confuse <item>, or run.")
             continue
 
         if enemy_health > 0:
             damage = random.randint(enemy_attack - 2, enemy_attack + 2)
             player_health = max(0, player_health - damage)
             print(f"The {enemy_name} hits you for {damage} damage.")
+            stress_gain = random.randint(4, 8)
+            player_stress = min(player_max_stress, player_stress + stress_gain)
+            print(f"Your stress rises by {stress_gain}.")
+            if player_stress >= player_max_stress:
+                print("The stress becomes too much to bear.")
+                death_screen()
+                return False
 
     if player_health <= 0:
         death_screen()
@@ -88,12 +138,15 @@ def show_room():
 def status():
     print("--------------------")
     show_health()
+    show_stress()
     slow_print(f"Inventory: {inventory}")
     print("--------------------")
               
 inventory = []
 player_max_health = 100
 player_health = player_max_health
+player_max_stress = 100
+player_stress = 0
 encounter_defeated = False
 
 rooms = {
@@ -171,13 +224,25 @@ while True:
         if len(move) < 2:
             print("Get what?")
             continue
-        item = " ".join(move[1:])
-        if item in rooms[currentRoom]["items"]:
+        request = " ".join(move[1:]).replace(",", " and ").strip()
+        room_items = rooms[currentRoom]["items"]
+        items_to_get = []
+
+        if request == "all":
+            items_to_get = room_items.copy()
+        else:
+            for item_request in request.split(" and "):
+                item_request = item_request.strip()
+                matching_items = [item for item in room_items if item in item_request]
+                if matching_items:
+                    items_to_get.extend(matching_items)
+                else:
+                    print(f"There is no {item_request} here.")
+
+        for item in items_to_get:
             print(f"You picked up the {item}.")
             inventory.append(item)
-            rooms[currentRoom]["items"].remove(item)
-        else:
-            print(f"There is no {item} here.")
+            room_items.remove(item)
     elif command == "go":
         if len(move) < 2:
             print("Go where?")
@@ -189,7 +254,7 @@ while True:
             show_room()
             if currentRoom == "apartment building hallway" and not encounter_defeated:
                 encounter_defeated = fight("shadow", 45, 45, 10)
-                if player_health <= 0:
+                if player_health <= 0 or player_stress >= player_max_stress:
                     break
                 if not encounter_defeated:
                     currentRoom = "main room"
