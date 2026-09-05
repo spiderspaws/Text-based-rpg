@@ -1,3 +1,4 @@
+import random
 import time
 
 def slow_print(text, delay=0.02):
@@ -14,22 +15,86 @@ def showInstructions( ):
     print("====================================")
     slow_print("Action: go [direction]")
     slow_print("        get [item]")
+    slow_print("        attack, heal, run")
+    slow_print("        look, inventory, quit")
+
+def show_health():
+    health_width = 20
+    filled = int(player_health / player_max_health * health_width)
+    bar = "#" * filled + "-" * (health_width - filled)
+    print(f"Health: [{bar}] {player_health}/{player_max_health}")
+
+def death_screen():
+    print("\n====================================")
+    print("              YOU DIED")
+    print("====================================")
+    print("You Idiot...")
+
+def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
+    global player_health
+
+    print(f"\nA {enemy_name} blocks your path!")
+    while enemy_health > 0 and player_health > 0:
+        print("------------------------------------")
+        show_health()
+        enemy_bar = "#" * int(enemy_health / enemy_max_health * 20)
+        enemy_bar += "-" * (20 - len(enemy_bar))
+        print(f"{enemy_name.title()}: [{enemy_bar}] {enemy_health}/{enemy_max_health}")
+        action = input("Fight> ").lower().strip()
+
+        if action == "attack":
+            damage = random.randint(12, 20) if "knife" in inventory else random.randint(4, 8)
+            enemy_health = max(0, enemy_health - damage)
+            print(f"You hit the {enemy_name} for {damage} damage.")
+        elif action == "heal":
+            if "bandages" not in inventory:
+                print("You do not have any bandages.")
+                continue
+            if player_health == player_max_health:
+                print("You are already at full health.")
+                continue
+            player_health = min(player_max_health, player_health + 25)
+            inventory.remove("bandages")
+            print("You use the bandages and recover 25 health.")
+        elif action == "run":
+            print("You retreat to the main room.")
+            return False
+        else:
+            print("Choose attack, heal, or run.")
+            continue
+
+        if enemy_health > 0:
+            damage = random.randint(enemy_attack - 2, enemy_attack + 2)
+            player_health = max(0, player_health - damage)
+            print(f"The {enemy_name} hits you for {damage} damage.")
+
+    if player_health <= 0:
+        death_screen()
+        return False
+
+    print(f"You defeated the {enemy_name}.")
+    return True
     
-def status():
+def show_room():
     print("--------------------")
     slow_print(f"You are in the {currentRoom}.")
     print("--------------------")
     print(f"{rooms[currentRoom]['description']}")
     print("--------------------")
+    room_items = rooms[currentRoom]["items"]
+    if room_items:
+        print(f"You can see the following items: {', '.join(room_items)}. Take them?")
+
+def status():
+    print("--------------------")
+    show_health()
     slow_print(f"Inventory: {inventory}")
-    print("--------------------") 
-    
-    if "items" in rooms[currentRoom]:
-        room_items = rooms[currentRoom]["items"]
-        if room_items:
-            print(f"You can see the following items: {', '.join(room_items)}. Take them?")
+    print("--------------------")
               
 inventory = []
+player_max_health = 100
+player_health = player_max_health
+encounter_defeated = False
 
 rooms = {
     "bedroom": {
@@ -57,47 +122,92 @@ rooms = {
     "apartment building hallway": {
         "description": "You are in the apartment building's hallway.",
         "items": [],
-        "exits": {"right": "main room"}
+            "exits": {"right": "main room", "forward": "apartment building entrance"}
+        },
+        "apartment building entrance": {
+            "description": "You are at the entrance of the apartment building. The street is quiet outside.",
+            "items": [],
+            "exits": {"back": "apartment building hallway", "forward": "outside"}
+        },
+        "outside": {
+            "description": "You are outside the apartment building. Crestwood Plaza is nearby.",
+            "items": [],
+            "exits": {"back": "apartment building entrance", "forward": "crestwood plaza"}
+        },
+        "crestwood plaza": {
+            "description": "You are in Crestwood Plaza's lobby. A hallway leads deeper into the building.",
+            "items": [],
+            "exits": {"back": "outside", "forward": "Crestwood's hallway"}
+        },
+        "Crestwood's hallway": {
+            "description": "You are in Crestwood's hallway. Ysuet's room is at the end.",
+            "items": [],
+            "exits": {"back": "crestwood plaza", "forward": "Ysuet's room"}
+        },
+        "Ysuet's room": {
+            "description": "You are in Ysuet's room. The room is silent and carefully organized.",
+            "items": [],
+            "exits": {"back": "Crestwood's hallway"}
+        }
     }
-}
 
-outside = {
-    "description": "You are outside the apartment building.",
-    "items": [],
-    "exits": {"back": "apartment building entrance"}
-}
-outside["crestwood plaza"] = {
-    "description": "You are in Crestwood Plaza's lobby.",
-    "exits": {"back": "apartment building entrance"}
-}
-
-ysuets_room = {
-    "description": "You are in Ysuet's room.",
-    "items": [],
-    "exits": {"back": "Crestwood's hallway"}
-}
 currentRoom = "bedroom"
 
 showInstructions()
+show_room()
 
 while True:
     status()
     move = input("What will you do? >")
-    move = move.split(" ", 1)
+    move = move.lower().split()
 
-    if move[0] == "get":
-        if move[1] in rooms[currentRoom]["items"]:
-            print(f"You picked up the {move[1]}.")
-            inventory.append(move[1])
-            rooms[currentRoom]["items"].remove(move[1])
+    if not move:
+        print("Please enter a command. Type 'help' to see the available commands.")
+        continue
+
+    command = move[0]
+
+    if command == "get":
+        if len(move) < 2:
+            print("Get what?")
+            continue
+        item = " ".join(move[1:])
+        if item in rooms[currentRoom]["items"]:
+            print(f"You picked up the {item}.")
+            inventory.append(item)
+            rooms[currentRoom]["items"].remove(item)
         else:
-            print(f"You already took the {move[1]}.")
-    elif move[0] == "go":
-        if move[1] in rooms[currentRoom]["exits"]:
-            currentRoom = rooms[currentRoom]["exits"][move[1]]
+            print(f"There is no {item} here.")
+    elif command == "go":
+        if len(move) < 2:
+            print("Go where?")
+            continue
+        direction = " ".join(move[1:])
+        if direction in rooms[currentRoom]["exits"]:
+            currentRoom = rooms[currentRoom]["exits"][direction]
             print(f"You walk to the {currentRoom}.")
+            show_room()
+            if currentRoom == "apartment building hallway" and not encounter_defeated:
+                encounter_defeated = fight("shadow", 45, 45, 10)
+                if player_health <= 0:
+                    break
+                if not encounter_defeated:
+                    currentRoom = "main room"
         else:
             print("You can't go that way.")
+    elif command in ("help", "instructions"):
+        showInstructions()
+    elif command == "look":
+        show_room()
+    elif command == "status":
+        status()
+    elif command == "inventory":
+        print(f"Inventory: {inventory}")
+    elif command in ("quit", "exit"):
+        print("Thanks for playing.")
+        break
+    else:
+        print("I don't understand that command. Type 'help' for a list of commands.")
 
 
 
