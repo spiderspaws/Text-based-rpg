@@ -34,12 +34,38 @@ def death_screen():
     print("\n====================================")
     print("              YOU DIED")
     print("====================================")
-    print("You Idiot...")
+    slow_print("You Idiot...")
+
+def victory_screen():
+    print("\n====================================")
+    print("              YOU WIN")
+    print("====================================")
+    slow_print("Yseut has been defeated.")
+
+def yseut_boss_fight():
+    print("\nYseut is waiting for you.")
+    if "knife" not in inventory:
+        print("You do not have the knife you need.")
+        death_screen()
+        return False
+
+    while True:
+        decision = input("Do you stab Yseut? (yes/no) ").strip().lower()
+        if decision in ("yes", "y"):
+            print("You stab Yseut with the knife.")
+            victory_screen()
+            return True
+        if decision in ("no", "n"):
+            print("You lower the knife.")
+            death_screen()
+            return False
+        print("Please answer yes or no.")
 
 def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
     global player_health, player_stress
 
     print(f"\nA {enemy_name} blocks your path!")
+    fight_turns = 0
     while enemy_health > 0 and player_health > 0:
         print("------------------------------------")
         show_health()
@@ -54,20 +80,22 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
         print("  confuse <item> - Confuse the enemy and damage it")
         print("  run    - Retreat from the fight")
         action = input("Fight> ").lower().strip()
+        enemy_can_react = False
 
         if action == "attack":
             damage = random.randint(12, 20) if "knife" in inventory else random.randint(4, 8)
             enemy_health = max(0, enemy_health - damage)
             print(f"You hit the {enemy_name} for {damage} damage.")
+            enemy_can_react = True
         elif action.startswith("use "):
             item = action[4:].strip()
             healing = {"bandages": 25, "gauze": 15, "effexor": 10}.get(item)
-            stress_reduction = {"effexor": 30}.get(item, 0)
+            stress_reduction = {"effexor": 40}.get(item, 0)
             if item not in inventory or healing is None:
                 print(f"You cannot use {item} to heal.")
                 continue
             if player_health == player_max_health and player_stress == 0:
-                print(f"The {item} would not help you right now.")
+                print(f"The {item} would not help right now.")
                 continue
             health_recovery = min(healing, player_max_health - player_health)
             player_health += health_recovery
@@ -87,6 +115,7 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
             inventory.remove(item)
             enemy_health = max(0, enemy_health - damage)
             print(f"You throw the {item} and hit the {enemy_name} for {damage} damage.")
+            enemy_can_react = True
         elif action.startswith("confuse "):
             item = action[8:].strip()
             if item not in inventory:
@@ -99,6 +128,7 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
             inventory.remove(item)
             enemy_health = max(0, enemy_health - damage)
             print(f"The {enemy_name} is confused. It loses {damage} health.")
+            enemy_can_react = True
         elif action == "run":
             print("You retreat to the main room.")
             return False
@@ -106,13 +136,23 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
             print("Choose attack, use <item>, throw <item>, confuse <item>, or run.")
             continue
 
-        if enemy_health > 0:
+        if enemy_health > 0 and enemy_can_react:
+            fight_turns += 1
+            reaction = random.choice((
+                f"The {enemy_name} snarls and prepares to strike back.",
+                f"The {enemy_name} scoffs, staring you down. 'You won't get very far with an attitude like that.",
+                f"The {enemy_name} starts to get agitated.",
+                f"The {enemy_name} stumbles, 'You should stop. Now!'",
+            ))
+            print(reaction)
             damage = random.randint(enemy_attack - 2, enemy_attack + 2)
             player_health = max(0, player_health - damage)
             print(f"The {enemy_name} hits you for {damage} damage.")
-            stress_gain = random.randint(4, 8)
+            stress_gain = random.randint(8, 16) if fight_turns > 2 else random.randint(4, 8)
             player_stress = min(player_max_stress, player_stress + stress_gain)
             print(f"Your stress rises by {stress_gain}.")
+            if fight_turns == 2:
+                print("You are starting to get anxious. Calm down.")
             if player_stress >= player_max_stress:
                 print("The stress becomes too much to bear.")
                 death_screen()
@@ -131,6 +171,9 @@ def show_room():
     print("--------------------")
     print(f"{rooms[currentRoom]['description']}")
     print("--------------------")
+    room_exits = rooms[currentRoom]["exits"]
+    if room_exits:
+        print(f"Available exits: {', '.join(room_exits)}")
     room_items = rooms[currentRoom]["items"]
     if room_items:
         print(f"You can see the following items: {', '.join(room_items)}. Take them?")
@@ -143,15 +186,17 @@ def status():
     print("--------------------")
               
 inventory = []
-player_max_health = 100
+player_max_health = 50
 player_health = player_max_health
 player_max_stress = 100
 player_stress = 0
 encounter_defeated = False
+outside_encounter_triggered = False
+yseut_encounter_triggered = False
 
 rooms = {
     "bedroom": {
-        "description": "''The air stale, and cold. Slightly dusty. The rumpled sheets on the bed have been slept in, countless times. But had never been made.. It felt empty despite the mess. Next to the closet door, was the desk. It had a fair amount of space, drawers filled with design plans and notes. There is a journal and a pen inside. The ink is almost finished. Underneath the desk, and uncomfortable looking wooden chair that had a scarf, a deep red, laying on top of it. The bathroom door runs along the left side of the room, and is closed. The window being the only source of light, and the only way to see outside. The glass cracked, and its curtains are old and slightly tattered.'",
+        "description": "''The air stale, and cold. Slightly dusty. The rumpled sheets on the bed have been slept in, countless times; But had never been made.. It felt empty despite the mess. The window being the only source of light, and the only way to see outside. The glass cracked, and its curtains are old and slightly tattered.'",
 
  
         "items": ["pen", "red scarf", "journal"],
@@ -198,7 +243,7 @@ rooms = {
             "exits": {"back": "crestwood plaza", "forward": "Ysuet's room"}
         },
         "Ysuet's room": {
-            "description": "You are in Ysuet's room. The room is silent and carefully organized.",
+            "description": "You are in Ysuet's room. The room is silent and carefully organized, but it reeks. Not in the way where food had been left out to rot, but in the way where a person had been left to die. The room is dark, and the only source of light is the crack of the door, The curtains are drawn. You see a figure emerging from the shadows.",
             "items": [],
             "exits": {"back": "Crestwood's hallway"}
         }
@@ -208,72 +253,3 @@ currentRoom = "bedroom"
 
 showInstructions()
 show_room()
-
-while True:
-    status()
-    move = input("What will you do? >")
-    move = move.lower().split()
-
-    if not move:
-        print("Please enter a command. Type 'help' to see the available commands.")
-        continue
-
-    command = move[0]
-
-    if command == "get":
-        if len(move) < 2:
-            print("Get what?")
-            continue
-        request = " ".join(move[1:]).replace(",", " and ").strip()
-        room_items = rooms[currentRoom]["items"]
-        items_to_get = []
-
-        if request == "all":
-            items_to_get = room_items.copy()
-        else:
-            for item_request in request.split(" and "):
-                item_request = item_request.strip()
-                matching_items = [item for item in room_items if item in item_request]
-                if matching_items:
-                    items_to_get.extend(matching_items)
-                else:
-                    print(f"There is no {item_request} here.")
-
-        for item in items_to_get:
-            print(f"You picked up the {item}.")
-            inventory.append(item)
-            room_items.remove(item)
-    elif command == "go":
-        if len(move) < 2:
-            print("Go where?")
-            continue
-        direction = " ".join(move[1:])
-        if direction in rooms[currentRoom]["exits"]:
-            currentRoom = rooms[currentRoom]["exits"][direction]
-            print(f"You walk to the {currentRoom}.")
-            show_room()
-            if currentRoom == "apartment building hallway" and not encounter_defeated:
-                encounter_defeated = fight("shadow", 45, 45, 10)
-                if player_health <= 0 or player_stress >= player_max_stress:
-                    break
-                if not encounter_defeated:
-                    currentRoom = "main room"
-        else:
-            print("You can't go that way.")
-    elif command in ("help", "instructions"):
-        showInstructions()
-    elif command == "look":
-        show_room()
-    elif command == "status":
-        status()
-    elif command == "inventory":
-        print(f"Inventory: {inventory}")
-    elif command in ("quit", "exit"):
-        print("Thanks for playing.")
-        break
-    else:
-        print("I don't understand that command. Type 'help' for a list of commands.")
-
-
-
-    
