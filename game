@@ -10,10 +10,10 @@ def slow_print(text, delay=0.02):
 def showInstructions( ):
     print("====================================")
     slow_print("There are a few commands you can use to interact with the game.")
-    slow_print("Commands are case sensitive, and must be typed exactly as shown.")
+    slow_print("Not all commands are case sensitive, directions must be typed exactly as shown.")
     slow_print("Be wary.")
     print("====================================")
-    slow_print("Action: go [direction]")
+    slow_print("Actions: go [direction]")
     slow_print("        get [item]")
     slow_print("        attack, use, throw, confuse, run")
     slow_print("        look, inventory, quit")
@@ -40,17 +40,17 @@ def victory_screen():
     print("\n====================================")
     print("              YOU WIN")
     print("====================================")
-    slow_print("Yseut has been defeated.")
+    slow_print("At what cost?")
 
 def yseut_boss_fight():
-    print("\nYseut is waiting for you.")
+    print("\nYseut stands unmoving, waiting for you.")
     if "knife" not in inventory:
         print("You do not have the knife you need.")
         death_screen()
         return False
 
     while True:
-        decision = input("Do you stab Yseut? (yes/no) ").strip().lower()
+        decision = input("Do you have mercy? (yes/no) ").strip().lower()
         if decision in ("yes", "y"):
             print("You stab Yseut with the knife.")
             victory_screen()
@@ -204,7 +204,7 @@ rooms = {
     },
     "main room": {
         "description": "You are in the main room.",
-        "items": ["coffee", "ciggarettes", "flies"],
+        "items": ["coffee", "ciggarettes", "filed"],
         "exits": {"back": "bedroom", "right": "kitchen", "left": "apartment building hallway"}
     },
     "bathroom": {
@@ -214,7 +214,7 @@ rooms = {
     },
     "kitchen": {
         "description": "You are in the kitchen.",
-        "items": ["knife"],
+        "items": ["knife", "apple"],
         "exits": {"left": "main room"}
     },
     "apartment building hallway": {
