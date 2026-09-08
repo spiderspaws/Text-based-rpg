@@ -253,3 +253,64 @@ currentRoom = "bedroom"
 
 showInstructions()
 show_room()
+
+while True:
+    status()
+    move = input("What will you do? >").lower().split()
+
+    if not move:
+        print("Please enter a command. Type 'help' to see the available commands.")
+        continue
+
+    command = move[0]
+
+    if command == "get":
+        if len(move) < 2:
+            print("Get what?")
+            continue
+        request = " ".join(move[1:]).replace(",", " and ").strip()
+        room_items = rooms[currentRoom]["items"]
+        items_to_get = room_items.copy() if request == "all" else []
+
+        if request != "all":
+            for item_request in request.split(" and "):
+                matching_items = [item for item in room_items if item in item_request.strip()]
+                if matching_items:
+                    items_to_get.extend(matching_items)
+                else:
+                    print(f"There is no {item_request.strip()} here.")
+
+        for item in items_to_get:
+            print(f"You picked up the {item}.")
+            inventory.append(item)
+            room_items.remove(item)
+    elif command == "go":
+        if len(move) < 2:
+            print("Go where?")
+            continue
+        direction = " ".join(move[1:])
+        if direction in rooms[currentRoom]["exits"]:
+            currentRoom = rooms[currentRoom]["exits"][direction]
+            print(f"You walk to the {currentRoom}.")
+            show_room()
+            if currentRoom == "apartment building hallway" and not encounter_defeated:
+                encounter_defeated = fight("shadow", 45, 45, 10)
+                if player_health <= 0 or player_stress >= player_max_stress:
+                    break
+                if not encounter_defeated:
+                    currentRoom = "main room"
+        else:
+            print("You can't go that way.")
+    elif command in ("help", "instructions"):
+        showInstructions()
+    elif command == "look":
+        show_room()
+    elif command == "status":
+        status()
+    elif command == "inventory":
+        print(f"Inventory: {inventory}")
+    elif command in ("quit", "exit"):
+        print("Thanks for playing.")
+        break
+    else:
+        print("I don't understand that command. Type 'help' for a list of commands.")
