@@ -299,6 +299,11 @@ while True:
                     break
                 if not encounter_defeated:
                     currentRoom = "main room"
+            elif currentRoom == "Ysuet's room" and not yseut_encounter_triggered:
+                yseut_encounter_triggered = True
+                boss_victory = yseut_boss_fight()
+                if not boss_victory or player_health <= 0 or player_stress >= player_max_stress:
+                    break
         else:
             print("You can't go that way.")
     elif command in ("help", "instructions"):
