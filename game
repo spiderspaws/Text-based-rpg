@@ -145,6 +145,10 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
                 f"The {enemy_name} stumbles, 'You should stop. Now!'",
             ))
             print(reaction)
+            # Add delay text to indicate enemy is about to attack
+            time.sleep(0.5)
+            slow_print("The enemy readies their attack...", delay=0.03)
+            time.sleep(0.3)
             damage = random.randint(enemy_attack - 2, enemy_attack + 2)
             player_health = max(0, player_health - damage)
             print(f"The {enemy_name} hits you for {damage} damage.")
