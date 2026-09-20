@@ -239,9 +239,9 @@ rooms = {
         "crestwood plaza": {
             "description": "You are in Crestwood Plaza's lobby. A hallway leads deeper into the building.",
             "items": [],
-            "exits": {"back": "outside", "forward": "Crestwood's hallway"}
+            "exits": {"back": "outside", "forward": "crestwood's hallway"}
         },
-        "Crestwood's hallway": {
+        "crestwood's hallway": {
             "description": "You are in Crestwood's hallway. Ysuet's room is at the end.",
             "items": [],
             "exits": {"back": "crestwood plaza", "forward": "Ysuet's room"}
@@ -249,7 +249,7 @@ rooms = {
         "Ysuet's room": {
             "description": "You are in Ysuet's room. The room is silent and carefully organized, but it reeks. Not in the way where food had been left out to rot, but in the way where a person had been left to die. The room is dark, and the only source of light is the crack of the door, The curtains are drawn. You see a figure emerging from the shadows.",
             "items": [],
-            "exits": {"back": "Crestwood's hallway"}
+            "exits": {"back": "crestwood's hallway"}
         }
     }
 
@@ -323,3 +323,4 @@ while True:
         break
     else:
         print("I don't understand that command. Type 'help' for a list of commands.")
+
