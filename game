@@ -182,6 +182,20 @@ def show_room():
     if room_items:
         print(f"You can see the following items: {', '.join(room_items)}. Take them?")
 
+
+def start_chapter(chapter_number):
+    global chapter
+    chapter = chapter_number
+    titles = {
+        1: "The Apartment",
+        2: "Crestwood Plaza",
+        3: "Yseut's Room",
+    }
+    print("\n" + "=" * 40)
+    slow_print(f"Chapter {chapter_number}: {titles.get(chapter_number, 'The Story')}")
+    print("=" * 40)
+
+
 def status():
     print("--------------------")
     show_health()
@@ -190,6 +204,7 @@ def status():
     print("--------------------")
               
 inventory = []
+chapter = 1
 player_max_health = 50
 player_health = player_max_health
 player_max_stress = 100
@@ -256,6 +271,7 @@ rooms = {
 currentRoom = "bedroom"
 
 showInstructions()
+start_chapter(1)
 show_room()
 
 while True:
@@ -296,6 +312,12 @@ while True:
         if direction in rooms[currentRoom]["exits"]:
             currentRoom = rooms[currentRoom]["exits"][direction]
             print(f"You walk to the {currentRoom}.")
+
+            if currentRoom == "apartment building hallway" and chapter == 1:
+                start_chapter(2)
+            elif currentRoom == "Ysuet's room" and chapter == 2:
+                start_chapter(3)
+
             show_room()
             if currentRoom == "apartment building hallway" and not encounter_defeated:
                 encounter_defeated = fight("shadow", 45, 45, 10)
