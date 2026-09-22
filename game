@@ -268,6 +268,24 @@ rooms = {
         }
     }
 
+University = {
+    "Crestwood University": {
+        "description": "You are at Crestwood University. The campus is quiet and well-maintained.",
+        "items": [],
+        "exits": {"back": "outside"}
+    },
+    "Hallway": {
+        "description": "You are in the hallway. The building is old, and the walls are lined with lockers. The floor is covered in linoleum tiles.",
+        "items": [],
+        "exits": {"back": "Crestwood University"}
+    },
+    "Class A": {
+        "description": "You are in Class A. The room is filled with desks and chairs, and the walls are adorned with educational posters.",
+        "items": [],
+        "exits": {"back": "Hallway"}
+    }
+}
+
 currentRoom = "bedroom"
 
 showInstructions()
@@ -345,4 +363,3 @@ while True:
         break
     else:
         print("I don't understand that command. Type 'help' for a list of commands.")
-
