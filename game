@@ -284,7 +284,12 @@ University = {
         "items": [],
         "exits": {"back": "Hallway"}
     }
+    "Girl's Bathroom": {
+        "description": "You are in the girl's bathroom. The room is clean and well-lit  
+        "items": [],
+        "exits": {"back": "Hallway"}
 }
+
 
 currentRoom = "bedroom"
 
