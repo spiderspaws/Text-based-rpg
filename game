@@ -61,6 +61,10 @@ def yseut_boss_fight():
             return False
         print("Please answer yes or no.")
 
+def normal_enemy_turn_limit_reached(enemy_name, fight_turns):
+    return enemy_name.lower() != "yseut" and fight_turns >= 5
+
+
 def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
     global player_health, player_stress
 
@@ -138,6 +142,10 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
 
         if enemy_health > 0 and enemy_can_react:
             fight_turns += 1
+            if normal_enemy_turn_limit_reached(enemy_name, fight_turns):
+                print(f"The {enemy_name} is overwhelmed after {fight_turns} exchanges. It backs off and gives you a chance to escape.")
+                return True
+
             reaction = random.choice((
                 f"The {enemy_name} snarls and prepares to strike back.",
                 f"The {enemy_name} scoffs, staring you down. 'You won't get very far with an attitude like that.",
@@ -145,7 +153,6 @@ def fight(enemy_name, enemy_health, enemy_max_health, enemy_attack):
                 f"The {enemy_name} stumbles, 'You should stop. Now!'",
             ))
             print(reaction)
-            # Add delay text to indicate enemy is about to attack
             time.sleep(0.5)
             slow_print("The enemy readies their attack...", delay=0.03)
             time.sleep(0.3)
@@ -191,8 +198,8 @@ def start_chapter(chapter_number):
         2: "Crestwood Plaza",
         3: "Yseut's Room",
         4: "Crestwood University",
-        5: "The Lab"
-        6: "Skipping class"
+        5: "The Lab",
+        6: "Skipping class",
     }
     print("\n" + "=" * 40)
     slow_print(f"Chapter {chapter_number}: {titles.get(chapter_number, 'The Story')}")
@@ -286,11 +293,12 @@ University = {
         "description": "You are in Class A. The room is filled with desks and chairs, and the walls are adorned with educational posters.",
         "items": [],
         "exits": {"back": "Hallway"}
-    }
+    },
     "Girl's Bathroom": {
-        "description": "You are in the girl's bathroom. The room is clean and well-lit  
+        "description": "You are in the girl's bathroom. The room is clean and well-lit.",
         "items": [],
         "exits": {"back": "Hallway"}
+    }
 }
 
 
