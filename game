@@ -15,6 +15,7 @@ def showInstructions( ):
     print("====================================")
     slow_print("Actions: go [direction]")
     slow_print("        get [item]")
+    slow_print("        talk [npc]")
     slow_print("        attack, use, throw, confuse, run")
     slow_print("        look, inventory, quit")
 
@@ -188,6 +189,44 @@ def show_room():
     room_items = rooms[currentRoom]["items"]
     if room_items:
         print(f"You can see the following items: {', '.join(room_items)}. Take them?")
+    room_npcs = rooms[currentRoom].get("npcs", [])
+    if room_npcs:
+        print(f"You notice: {', '.join(room_npcs)}.")
+
+
+def talk_to_npc(npc_name, room_name=None):
+    npc_key = (npc_name or "").strip()
+    if not npc_key:
+        return "Who do you want to talk to?"
+
+    matching_npc = None
+    if room_name is not None:
+        room_npcs = rooms.get(room_name, {}).get("npcs", [])
+        for npc in room_npcs:
+            if npc.lower() == npc_key.lower():
+                matching_npc = npc
+                break
+
+    if matching_npc is None:
+        for room_details in rooms.values():
+            for npc in room_details.get("npcs", []):
+                if npc.lower() == npc_key.lower():
+                    matching_npc = npc
+                    break
+            if matching_npc is not None:
+                break
+
+    if matching_npc is None:
+        return f"There is no {npc_name} here."
+
+    npc_dialogue = {
+        "Mara": "Mara gives a tired smile. 'Hello. I was hoping you'd make it through the night.'",
+        "Yseut": "Yseut stands in the dim light, their eyes sharp. 'You are already too late.'",
+        "Shadow": "The shadow shifts and hisses, 'The walls remember your footsteps.'",
+        "Clerk": "The clerk says, 'You'll find what you're looking for if you keep your eyes open.'",
+    }
+
+    return npc_dialogue.get(matching_npc, f"{matching_npc} says: 'I have something to tell you, but now is not the time.'")
 
 
 def start_chapter(chapter_number):
@@ -226,57 +265,65 @@ yseut_encounter_triggered = False
 rooms = {
     "bedroom": {
         "description": "''The air stale, and cold. Slightly dusty. The rumpled sheets on the bed have been slept in, countless times; But had never been made.. It felt empty despite the mess. The window being the only source of light, and the only way to see outside. The glass cracked, and its curtains are old and slightly tattered.'",
-
- 
         "items": ["pen", "red scarf", "journal"],
-        "exits": {"forward": "main room", "left": "bathroom"}
+        "exits": {"forward": "main room", "left": "bathroom"},
+        "npcs": []
     },
     "main room": {
         "description": "You are in the main room.",
         "items": ["coffee", "ciggarettes", "filed"],
-        "exits": {"back": "bedroom", "right": "kitchen", "left": "apartment building hallway"}
+        "exits": {"back": "bedroom", "right": "kitchen", "left": "apartment building hallway"},
+        "npcs": ["Mara"]
     },
     "bathroom": {
         "description": "''There's not much to it, It's a small bathroom. The walls painted a light blue, and the floor is tiled. The sink is on the left side of the room, with a medicine cabinet with a mirror above it. Looking inside the cabinet, you find Venlafaxine. There are other medicine; ibuprofen, acetaminophin. There are basic first aid supplies as well. bandages, gauze, and hydrogen peroxide. The toilet is next to the sink, and the shower is on the right side of the room. The shower curtain is old and slightly tattered. The bathroom door is closed, and there's a faint scent of an antiseptic smell. The bathtub is north of the room, a small showerhead attatched to the wall. The bathroom is small, but it has everything you need.'",
         "items": ["effexor", "bandages", "gauze",],
-        "exits": {"back": "bedroom"}
+        "exits": {"back": "bedroom"},
+        "npcs": []
     },
     "kitchen": {
         "description": "You are in the kitchen.",
         "items": ["knife", "apple"],
-        "exits": {"left": "main room"}
+        "exits": {"left": "main room"},
+        "npcs": []
     },
     "apartment building hallway": {
         "description": "You are in the apartment building's hallway.",
         "items": [],
-            "exits": {"right": "main room", "forward": "apartment building entrance"}
-        },
-        "apartment building entrance": {
-            "description": "You are at the entrance of the apartment building. The street is quiet outside.",
-            "items": [],
-            "exits": {"back": "apartment building hallway", "forward": "outside"}
-        },
-        "outside": {
-            "description": "You are outside the apartment building. Crestwood Plaza is nearby.",
-            "items": [],
-            "exits": {"back": "apartment building entrance", "forward": "crestwood plaza"}
-        },
-        "crestwood plaza": {
-            "description": "You are in Crestwood Plaza's lobby. A hallway leads deeper into the building.",
-            "items": [],
-            "exits": {"back": "outside", "forward": "crestwood's hallway"}
-        },
-        "crestwood's hallway": {
-            "description": "You are in Crestwood's hallway. Ysuet's room is at the end.",
-            "items": [],
-            "exits": {"back": "crestwood plaza", "forward": "Ysuet's room"}
-        },
-        "Ysuet's room": {
-            "description": "You are in Ysuet's room. The room is silent and carefully organized, but it reeks. Not in the way where food had been left out to rot, but in the way where a person had been left to die. The room is dark, and the only source of light is the crack of the door, The curtains are drawn. You see a figure emerging from the shadows.",
-            "items": [],
-            "exits": {"back": "crestwood's hallway"}
-        }
+        "exits": {"right": "main room", "forward": "apartment building entrance"},
+        "npcs": ["Clerk"]
+    },
+    "apartment building entrance": {
+        "description": "You are at the entrance of the apartment building. The street is quiet outside.",
+        "items": [],
+        "exits": {"back": "apartment building hallway", "forward": "outside"},
+        "npcs": []
+    },
+    "outside": {
+        "description": "You are outside the apartment building. Crestwood Plaza is nearby.",
+        "items": [],
+        "exits": {"back": "apartment building entrance", "forward": "crestwood plaza"},
+        "npcs": []
+    },
+    "crestwood plaza": {
+        "description": "You are in Crestwood Plaza's lobby. A hallway leads deeper into the building.",
+        "items": [],
+        "exits": {"back": "outside", "forward": "crestwood's hallway"},
+        "npcs": []
+    },
+    "crestwood's hallway": {
+        "description": "You are in Crestwood's hallway. Ysuet's room is at the end.",
+        "items": [],
+        "exits": {"back": "crestwood plaza", "forward": "Ysuet's room"},
+        "npcs": []
+    },
+    "Ysuet's room": {
+        "description": "You are in Ysuet's room. The room is silent and carefully organized, but it reeks. Not in the way where food had been left out to rot, but in the way where a person had been left to die. The room is dark, and the only source of light is the crack of the door, The curtains are drawn. You see a figure emerging from the shadows.",
+        "items": [],
+        "exits": {"back": "crestwood's hallway"},
+        "npcs": ["Yseut", "Shadow"]
     }
+}
 
 University = {
     "Crestwood University": {
@@ -370,6 +417,12 @@ while True:
         showInstructions()
     elif command == "look":
         show_room()
+    elif command == "talk":
+        if len(move) < 2:
+            print("Talk to whom?")
+            continue
+        npc_name = " ".join(move[1:])
+        print(talk_to_npc(npc_name, currentRoom))
     elif command == "status":
         status()
     elif command == "inventory":
