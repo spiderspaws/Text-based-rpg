@@ -11,6 +11,7 @@ def load_game_functions():
         if isinstance(node, ast.FunctionDef) and node.name in {
             "normal_enemy_turn_limit_reached",
             "fight",
+            "talk_to_npc",
         }:
             exec(compile(ast.Module(body=[node], type_ignores=[]), "game", "exec"), namespace)
 
@@ -23,3 +24,14 @@ def test_normal_enemy_turn_limit_reached():
     assert functions["normal_enemy_turn_limit_reached"]("goblin", 4) is False
     assert functions["normal_enemy_turn_limit_reached"]("goblin", 5) is True
     assert functions["normal_enemy_turn_limit_reached"]("Yseut", 5) is False
+
+
+def test_talk_to_npc_returns_dialogue():
+    functions = load_game_functions()
+
+    mara_dialogue = functions["talk_to_npc"]("Mara")
+    assert "Mara" in mara_dialogue
+    assert "hello" in mara_dialogue.lower()
+
+    missing_dialogue = functions["talk_to_npc"]("Ghost")
+    assert "not here" in missing_dialogue.lower()
