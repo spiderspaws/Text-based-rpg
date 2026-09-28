@@ -43,6 +43,15 @@ def victory_screen():
     print("====================================")
     slow_print("At what cost?")
 
+
+def end_chapter_two():
+    print("\n====================================")
+    slow_print("The chapter closes in silence...")
+    slow_print("To be continued...")
+    print("====================================")
+    return "To be continued..."
+
+
 def yseut_boss_fight():
     print("\nYseut stands unmoving, waiting for you.")
     if "knife" not in inventory:
@@ -55,6 +64,7 @@ def yseut_boss_fight():
         if decision in ("yes", "y"):
             print("You stab Yseut with the knife.")
             victory_screen()
+            end_chapter_two()
             return True
         if decision in ("no", "n"):
             print("You lower the knife.")
@@ -220,10 +230,9 @@ def talk_to_npc(npc_name, room_name=None):
         return f"There is no {npc_name} here."
 
     npc_dialogue = {
-        "Mara": "Mara gives a tired smile. 'Hello. I was hoping you'd make it through the night.'",
-        "Yseut": "Yseut stands in the dim light, their eyes sharp. 'You are already too late.'",
+        "Mara": "Mara gives a tired smile. 'I was hoping you'd make it through the night.'",
         "Shadow": "The shadow shifts and hisses, 'The walls remember your footsteps.'",
-        "Clerk": "The clerk says, 'You'll find what you're looking for if you keep your eyes open.'",
+        "???": "You'll find what you're looking for if you keep your eyes open.'",
     }
 
     return npc_dialogue.get(matching_npc, f"{matching_npc} says: 'I have something to tell you, but now is not the time.'")
@@ -411,6 +420,8 @@ while True:
                 boss_victory = yseut_boss_fight()
                 if not boss_victory or player_health <= 0 or player_stress >= player_max_stress:
                     break
+                end_chapter_two()
+                break
         else:
             print("You can't go that way.")
     elif command in ("help", "instructions"):
@@ -419,7 +430,7 @@ while True:
         show_room()
     elif command == "talk":
         if len(move) < 2:
-            print("Talk to whom?")
+            print("Talk to who?")
             continue
         npc_name = " ".join(move[1:])
         print(talk_to_npc(npc_name, currentRoom))

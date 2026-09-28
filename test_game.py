@@ -12,6 +12,7 @@ def load_game_functions():
             "normal_enemy_turn_limit_reached",
             "fight",
             "talk_to_npc",
+            "end_chapter_two",
         }:
             exec(compile(ast.Module(body=[node], type_ignores=[]), "game", "exec"), namespace)
 
@@ -35,3 +36,10 @@ def test_talk_to_npc_returns_dialogue():
 
     missing_dialogue = functions["talk_to_npc"]("Ghost")
     assert "not here" in missing_dialogue.lower()
+
+
+def test_end_chapter_two_returns_to_be_continued():
+    functions = load_game_functions()
+
+    chapter_end = functions["end_chapter_two"]()
+    assert "to be continued" in chapter_end.lower()
